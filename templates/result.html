@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Skin lesion classification result with AI prediction, confidence score, and Grad-CAM heatmap visualization.">
+    <title>SkinAI — Classification Result</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- ================================================================ -->
+    <!-- Navigation Bar -->
+    <!-- ================================================================ -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔬</span>
+                <span class="logo-text">Skin<span class="logo-highlight">AI</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/#how-it-works" class="nav-link">How It Works</a>
+                <a href="/#lesion-types" class="nav-link">Lesion Types</a>
+                <a href="/#model-performance" class="nav-link">Model Performance</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================================================================ -->
+    <!-- Results Section -->
+    <!-- ================================================================ -->
+    <section class="results-section">
+        <div class="results-container">
+
+            <!-- Results Header -->
+            <div class="results-header">
+                <h1 class="results-title">Classification Result</h1>
+                <p class="results-subtitle">AI-powered analysis of your dermoscopic image</p>
+            </div>
+
+            <!-- Main Result Card -->
+            <div class="result-main-card">
+                <!-- Predicted Class -->
+                <div class="prediction-badge" style="border-color: {{ results.risk_color }};">
+                    <div class="prediction-label">Predicted Diagnosis</div>
+                    <div class="prediction-class">{{ results.predicted_class_full }}</div>
+                    <div class="prediction-abbr">({{ results.predicted_class }})</div>
+                    <div class="prediction-risk" style="color: {{ results.risk_color }};">
+                        {{ results.risk_level }}
+                    </div>
+                </div>
+
+                <!-- Confidence Score -->
+                <div class="confidence-section">
+                    <div class="confidence-label">Confidence Score</div>
+                    <div class="confidence-value" style="color: {{ results.risk_color }};">
+                        {{ results.confidence_percentage }}
+                    </div>
+                    <div class="confidence-bar-container">
+                        <div class="confidence-bar"
+                             style="width: {{ (results.confidence * 100) | int }}%;
+                                    background: linear-gradient(90deg, {{ results.risk_color }}, {{ results.risk_color }}88);"
+                             data-width="{{ (results.confidence * 100) | int }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Grid -->
+            <div class="images-grid">
+                <!-- Original Image -->
+                <div class="image-card">
+                    <h3 class="image-card-title">📷 Uploaded Image</h3>
+                    <div class="image-wrapper">
+                        <img src="{{ url_for('uploaded_file', filename=results.original_filename) }}"
+                             alt="Uploaded skin lesion image"
+                             class="result-image">
+                    </div>
+                </div>
+
+                <!-- Grad-CAM Heatmap -->
+                {% if results.gradcam_filename %}
+                <div class="image-card">
+                    <h3 class="image-card-title">🔥 Grad-CAM Heatmap</h3>
+                    <div class="image-wrapper">
+                        <img src="{{ url_for('uploaded_file', filename=results.gradcam_filename) }}"
+                             alt="Grad-CAM heatmap showing diagnostic regions"
+                             class="result-image">
+                    </div>
+                    <p class="heatmap-description">
+                        Highlighted regions indicate areas most influential in the model's classification decision.
+                        <span style="color: #ff4444;">Red = High influence</span> ·
+                        <span style="color: #4444ff;">Blue = Low influence</span>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Probability Distribution -->
+            <div class="probabilities-card">
+                <h3 class="probabilities-title">📊 Classification Probabilities</h3>
+                <p class="probabilities-subtitle">Probability distribution across all 7 skin lesion classes</p>
+
+                <div class="probabilities-list">
+                    {% for abbr, info in results.probabilities.items() %}
+                    <div class="probability-row {% if abbr == results.predicted_class %}probability-predicted{% endif %}">
+                        <div class="prob-info">
+                            <span class="prob-abbr">{{ abbr }}</span>
+                            <span class="prob-name">{{ info.name }}</span>
+                        </div>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar"
+                                 style="width: {{ (info.probability * 100) | round(1) }}%;"
+                                 data-width="{{ (info.probability * 100) | round(1) }}">
+                            </div>
+                        </div>
+                        <span class="prob-value">{{ info.percentage }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Medical Disclaimer -->
+            <div class="disclaimer-card">
+                <div class="disclaimer-icon">⚕️</div>
+                <div class="disclaimer-content">
+                    <h4 class="disclaimer-title">Medical Disclaimer</h4>
+                    <p class="disclaimer-text">
+                        This AI-based classification system is designed for <strong>educational and research purposes only</strong>.
+                        The predictions provided by this system should <strong>not</strong> be used as a substitute for
+                        professional medical diagnosis. Always consult a qualified dermatologist or healthcare
+                        provider for accurate diagnosis and treatment decisions. This tool is intended to assist
+                        medical professionals, not replace them.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="result-actions">
+                <a href="/" class="action-btn primary-btn">
+                    <span>📸 Analyze Another Image</span>
+                </a>
+                <a href="/#lesion-types" class="action-btn secondary-btn">
+                    <span>📖 Learn About Lesion Types</span>
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Footer -->
+    <!-- ================================================================ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span class="logo-icon">🔬</span>
+                <span class="logo-text">Skin<span class="logo-highlight">AI</span></span>
+            </div>
+            <p class="footer-text">
+                Deep Learning Based Skin Lesion Classification and Diagnosis
+            </p>
+            <p class="footer-disclaimer">
+                ⚠️ This tool is for educational and research purposes only.
+                Always consult a qualified dermatologist.
+            </p>
+            <p class="footer-credits">
+                B.Tech Final Year Project · HAM10000 Dataset · MobileNetV2 · TensorFlow/Keras
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Animate confidence bars on page load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate probability bars
+            setTimeout(function() {
+                document.querySelectorAll('.prob-bar, .confidence-bar').forEach(function(bar) {
+                    const width = bar.getAttribute('data-width');
+                    bar.style.width = width + '%';
+                });
+            }, 300);
+        });
+    </script>
+</body>
+</html>

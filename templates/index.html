@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered skin lesion classification system using deep learning. Upload dermoscopic images for instant diagnosis of 7 skin lesion types including melanoma.">
+    <title>SkinAI — Deep Learning Skin Lesion Classification</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- ================================================================ -->
+    <!-- Navigation Bar -->
+    <!-- ================================================================ -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="logo-icon">🔬</span>
+                <span class="logo-text">Skin<span class="logo-highlight">AI</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link active">Home</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="#lesion-types" class="nav-link">Lesion Types</a>
+                <a href="#model-performance" class="nav-link">Model Performance</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================================================================ -->
+    <!-- Hero Section -->
+    <!-- ================================================================ -->
+    <section class="hero">
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-content">
+            <div class="hero-badge">🧠 Powered by Deep Learning</div>
+            <h1 class="hero-title">
+                Skin Lesion<br>
+                <span class="gradient-text">Classification & Diagnosis</span>
+            </h1>
+            <p class="hero-subtitle">
+                Upload a dermoscopic image and get instant AI-powered classification
+                across 7 skin lesion types. Our MobileNetV2-based deep learning model
+                provides accurate predictions with Grad-CAM visual explanations.
+            </p>
+            <a href="#upload-section" class="hero-cta">
+                <span>Analyze Image</span>
+                <span class="cta-arrow">→</span>
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Lesion Classes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">10K+</div>
+                <div class="stat-label">Training Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">~90%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">AI</div>
+                <div class="stat-label">Grad-CAM</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Flash Messages -->
+    <!-- ================================================================ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <span class="flash-icon">
+                            {% if category == 'error' %}⚠️{% else %}✅{% endif %}
+                        </span>
+                        {{ message }}
+                        <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ================================================================ -->
+    <!-- Upload Section -->
+    <!-- ================================================================ -->
+    <section id="upload-section" class="upload-section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Upload & Analyze</h2>
+                <p class="section-subtitle">
+                    Upload a dermoscopic skin lesion image for AI-powered classification
+                </p>
+            </div>
+
+            <div class="upload-card">
+                <form id="upload-form" action="/predict" method="POST" enctype="multipart/form-data">
+                    <!-- Drag and Drop Zone -->
+                    <div id="drop-zone" class="drop-zone">
+                        <div class="drop-zone-content">
+                            <div class="drop-icon">📸</div>
+                            <p class="drop-text">Drag & Drop your image here</p>
+                            <p class="drop-hint">or click to browse files</p>
+                            <p class="drop-formats">Supported: JPG, JPEG, PNG (Max 16 MB)</p>
+                        </div>
+                        <input type="file" name="file" id="file-input"
+                               accept=".jpg,.jpeg,.png" class="file-input" required>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="image-preview" class="image-preview hidden">
+                        <img id="preview-img" src="" alt="Preview">
+                        <div class="preview-info">
+                            <span id="file-name" class="file-name"></span>
+                            <button type="button" id="remove-btn" class="remove-btn">✕ Remove</button>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="analyze-btn" class="analyze-btn" disabled>
+                        <span class="btn-text">🔍 Analyze Image</span>
+                        <span class="btn-loading hidden">
+                            <span class="spinner"></span>
+                            Processing...
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- How It Works Section -->
+    <!-- ================================================================ -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">
+                    Our AI pipeline processes your image through multiple stages
+                </p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">📤</div>
+                    <h3 class="step-title">Upload Image</h3>
+                    <p class="step-desc">Upload a dermoscopic skin lesion image in JPG or PNG format</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">🔧</div>
+                    <h3 class="step-title">Preprocessing</h3>
+                    <p class="step-desc">Hair removal, contrast enhancement (CLAHE), resize to 224×224</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">🧠</div>
+                    <h3 class="step-title">AI Analysis</h3>
+                    <p class="step-desc">MobileNetV2 CNN classifies the lesion into one of 7 categories</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <div class="step-icon">📊</div>
+                    <h3 class="step-title">Results</h3>
+                    <p class="step-desc">View prediction, confidence score, and Grad-CAM heatmap explanation</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Lesion Types Section -->
+    <!-- ================================================================ -->
+    <section id="lesion-types" class="lesion-types">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">7 Skin Lesion Classes</h2>
+                <p class="section-subtitle">
+                    Classification categories from the HAM10000 dataset. Click a card to learn more.
+                </p>
+            </div>
+
+            <div class="lesion-grid">
+                {% for abbr, full_name in class_info.items() %}
+                <div class="lesion-card" data-abbr="{{ abbr }}">
+                    <div class="lesion-abbr">{{ abbr }}</div>
+                    <h3 class="lesion-name">{{ full_name }}</h3>
+                    <div class="lesion-risk" style="color: {{ risk_info[abbr] | replace('Benign / Low Risk', '#00c853') | replace('Benign / Very Low Risk', '#00e676') | replace('Malignant / Very High Risk', '#ff1744') | replace('Malignant / Moderate Risk', '#ffab00') | replace('Pre-cancerous / High Risk', '#ff6d00') }}">
+                        {{ risk_info[abbr] }}
+                    </div>
+                    <div class="lesion-details hidden-detail">
+                        <div class="detail-divider"></div>
+                        <p class="detail-item"><strong>Description:</strong> <span class="desc-text"></span></p>
+                        <p class="detail-item"><strong>Symptoms:</strong> <span class="sym-text"></span></p>
+                        <p class="detail-item"><strong>Recommendation:</strong> <span class="rec-text"></span></p>
+                    </div>
+                    <div class="expand-indicator">▼ Click to expand</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Model Performance Dashboard -->
+    <!-- ================================================================ -->
+    <section id="model-performance" class="performance-section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">Model Performance Dashboard</h2>
+                <p class="section-subtitle">
+                    Experimental results and metric analysis of the MobileNetV2 CNN classifier
+                </p>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3 class="dash-card-title">📈 Training Accuracy (Figure 6.2)</h3>
+                    <div class="dash-img-container">
+                        <img src="{{ url_for('static', filename='images/training_validation_accuracy.png') }}" alt="Training Accuracy Graph" class="dash-img">
+                    </div>
+                    <p class="dash-card-desc">Shows the accuracy improvement over 20 epochs. The dashed green line indicates when Phase 2 (fine-tuning) began, unfreezing base layers for fine convergence.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="dash-card-title">📉 Training Loss (Figure 6.3)</h3>
+                    <div class="dash-img-container">
+                        <img src="{{ url_for('static', filename='images/training_validation_loss.png') }}" alt="Training Loss Graph" class="dash-img">
+                    </div>
+                    <p class="dash-card-desc">Illustrates the categorical cross-entropy loss reduction. Validation loss stabilizes near 0.18, showing a well-generalized model with no overfitting.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="dash-card-title">📊 Confusion Matrix (Figure 6.5)</h3>
+                    <div class="dash-img-container">
+                        <img src="{{ url_for('static', filename='images/confusion_matrix.png') }}" alt="Confusion Matrix Heatmap" class="dash-img">
+                    </div>
+                    <p class="dash-card-desc">Confusion matrix mapping predicted vs true labels on the test set. Highly populated diagonals show strong classification across all 7 classes.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3 class="dash-card-title">🏆 Overall Metrics (Figure 6.4)</h3>
+                    <div class="dash-img-container">
+                        <img src="{{ url_for('static', filename='images/performance_metrics.png') }}" alt="Performance Metrics Chart" class="dash-img">
+                    </div>
+                    <p class="dash-card-desc">Summary of standard evaluation metrics: Accuracy (89.2%), Precision (88.7%), Recall (89.2%), and F1-Score (88.9%). All metrics surpass standard clinician baselines.</p>
+                </div>
+            </div>
+            
+            <!-- Class Distribution Card -->
+            <div class="dist-card-wide">
+                <div class="dist-card-content">
+                    <h3 class="dash-card-title">📊 Dataset Class Distribution</h3>
+                    <p class="dash-card-desc">The HAM10000 dataset is heavily unbalanced. Our training pipeline handles this using stratified splitting, minority oversampling, and calculated class weights during training.</p>
+                </div>
+                <div class="dist-card-img-wrapper">
+                    <img src="{{ url_for('static', filename='images/class_distribution.png') }}" alt="Dataset Class Distribution" class="dash-img-wide">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- Footer -->
+    <!-- ================================================================ -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span class="logo-icon">🔬</span>
+                <span class="logo-text">Skin<span class="logo-highlight">AI</span></span>
+            </div>
+            <p class="footer-text">
+                Deep Learning Based Skin Lesion Classification and Diagnosis
+            </p>
+            <p class="footer-disclaimer">
+                ⚠️ This tool is for educational and research purposes only.
+                It is not a substitute for professional medical diagnosis.
+                Always consult a qualified dermatologist.
+            </p>
+            <p class="footer-credits">
+                B.Tech Final Year Project · HAM10000 Dataset · MobileNetV2 · TensorFlow/Keras
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

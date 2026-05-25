@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Project Specific Data & Uploads
+dataset/
+uploads/*
+!uploads/.gitkeep
+
+# Large trained models (optional to ignore, but recommended if using Git LFS or if too large)
+# models/skin_lesion_model.h5
+
+# IDEs and OS files
+.DS_Store
+.vscode/
+.idea/
+.ipynb_checkpoints/
