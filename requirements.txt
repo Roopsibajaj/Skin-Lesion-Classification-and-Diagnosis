@@ -6,7 +6,11 @@
 # ============================================================================
 
 # Deep Learning Framework
-tensorflow>=2.13.0
+tensorflow>=2.13.0; sys_platform == 'darwin'
+tensorflow-cpu>=2.13.0; sys_platform != 'darwin'
+
+# Production Web Server (Render)
+gunicorn>=21.2.0
 
 # Web Framework
 flask>=3.0.0
